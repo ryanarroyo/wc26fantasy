@@ -20,26 +20,33 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div
+      className="flex min-h-screen items-center justify-center px-4"
+      style={{ background: "#000" }}
+    >
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">
-            <span className="text-primary">World Cup</span>{" "}
-            <span className="text-secondary">2026</span>
+          <img
+            src="/logo.png"
+            alt="World Cup Fantasy 2026"
+            className="mx-auto mb-6 w-40 object-contain"
+          />
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">
+            World Cup Fantasy
           </h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            Bracket Predictor
+          <p className="mt-1 text-sm font-light tracking-widest uppercase text-white/40">
+            2026 Bracket Predictor
           </p>
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-4 text-sm text-white/50">
             Predict scores, compete with friends, and follow the tournament
             live.
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-8">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8">
           <button
             onClick={handleGoogleLogin}
-            className="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
+            className="flex w-full items-center justify-center gap-3 rounded-full bg-white px-4 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -63,13 +70,13 @@ function LoginForm() {
           </button>
 
           {error && (
-            <p className="mt-4 text-center text-sm text-destructive">
+            <p className="mt-4 text-center text-sm text-red-400">
               Authentication failed. Please try again.
             </p>
           )}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-white/30">
           Sign in to create or join a league and start predicting.
         </p>
       </div>

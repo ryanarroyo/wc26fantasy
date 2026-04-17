@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "World Cup 2026 Bracket",
   description: "Predict scores, compete with friends, and follow the FIFA World Cup 2026 live.",
+  icons: {
+    icon: "/soccer-ball.svg",
+  },
 };
 
 export default function RootLayout({

@@ -11,6 +11,7 @@ const navLinks = [
   { href: "/predictions", label: "Predictions" },
   { href: "/leagues", label: "Leagues" },
   { href: "/stats", label: "Stats" },
+  { href: "/how-to-play", label: "How to Play" },
 ];
 
 export function NavBar() {

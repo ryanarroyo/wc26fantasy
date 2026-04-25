@@ -37,6 +37,12 @@ export default function HomePage() {
             View Bracket
           </Link>
         </div>
+        <Link
+          href="/how-to-play"
+          className="mt-6 text-xs font-medium uppercase tracking-widest text-white/40 transition-colors hover:text-white/70"
+        >
+          How scoring works →
+        </Link>
       </section>
 
       {/* Stats */}
@@ -111,6 +117,13 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 text-center text-xs text-white/20">
+        <Link
+          href="/how-to-play"
+          className="text-white/40 transition-colors hover:text-white/70"
+        >
+          How to Play
+        </Link>
+        <span className="mx-3 text-white/10">·</span>
         FIFA World Cup 2026 &middot; USA &middot; Mexico &middot; Canada
       </footer>
     </div>

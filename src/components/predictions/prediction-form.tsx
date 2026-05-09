@@ -5,6 +5,7 @@ import type { MatchWithTeams, Prediction } from "@/lib/types/database";
 import { PredictionCard } from "./prediction-card";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { autoPickMatch } from "@/lib/auto-pick";
 
 type PredictionInput = {
   match_id: number;
@@ -95,6 +96,49 @@ export function PredictionForm({
     setSuccess(false);
   };
 
+  const handleAutoPick = (overwrite: boolean) => {
+    const now = new Date();
+    const isKnockout = round !== "GROUP";
+    const eligible = matches.filter(
+      (m) =>
+        m.home_team &&
+        m.away_team &&
+        new Date(m.kickoff_at) > now &&
+        (overwrite || !predictions.has(m.id))
+    );
+
+    if (eligible.length === 0) {
+      setError(
+        overwrite
+          ? "No matches available to auto-pick."
+          : "All open matches already have a prediction. Use overwrite to replace."
+      );
+      return;
+    }
+
+    setPredictions((prev) => {
+      const next = new Map(prev);
+      for (const match of eligible) {
+        const result = autoPickMatch({
+          homeRank: match.home_team?.fifa_rank ?? null,
+          awayRank: match.away_team?.fifa_rank ?? null,
+          homeTeamId: match.home_team_id,
+          awayTeamId: match.away_team_id,
+          needsWinnerOnDraw: isKnockout,
+        });
+        next.set(match.id, {
+          match_id: match.id,
+          predicted_home: result.predicted_home,
+          predicted_away: result.predicted_away,
+          predicted_winner_id: result.predicted_winner_id,
+        });
+      }
+      return next;
+    });
+    setError(null);
+    setSuccess(false);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
@@ -140,8 +184,43 @@ export function PredictionForm({
     (m) => new Date(m.kickoff_at) > new Date()
   ).length;
 
+  const unpredictedOpenCount = matches.filter(
+    (m) =>
+      m.home_team &&
+      m.away_team &&
+      new Date(m.kickoff_at) > new Date() &&
+      !predictions.has(m.id)
+  ).length;
+
   return (
     <div className="space-y-4">
+      {predictableCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
+          <div className="text-xs text-muted-foreground">
+            Need a head start? Auto Pick fills realistic random scores for any
+            open matches.
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleAutoPick(false)}
+              disabled={unpredictedOpenCount === 0}
+              className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Auto Pick {unpredictedOpenCount > 0 ? `(${unpredictedOpenCount})` : ""}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAutoPick(true)}
+              className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              title="Replace all open predictions in this round with new random picks"
+            >
+              Re-roll all
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-3 sm:grid-cols-2">
         {matches.map((match) => (
           <PredictionCard

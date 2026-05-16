@@ -1,5 +1,6 @@
 import { InviteLink } from "@/components/leagues/invite-link";
 import { DeleteLeague } from "@/components/leagues/delete-league";
+import { H2HLobby } from "@/components/leagues/h2h-lobby";
 import type {
   H2HDraft,
   H2HDraftStatus,
@@ -25,11 +26,13 @@ export function H2HLeagueView({
   league,
   draft,
   members,
+  readyUserIds,
   currentUserId,
 }: {
   league: League;
   draft: H2HDraft | null;
   members: MemberWithProfile[];
+  readyUserIds: string[];
   currentUserId: string | undefined;
 }) {
   const isOwner = league.owner_id === currentUserId;
@@ -37,6 +40,10 @@ export function H2HLeagueView({
   const needsOpponent = memberCount < 2;
   const status: H2HDraftStatus = draft?.status ?? "LOBBY";
   const statusCopy = STATUS_COPY[status];
+  const showLobby =
+    !needsOpponent &&
+    currentUserId !== undefined &&
+    status !== "CANCELLED";
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
@@ -66,46 +73,60 @@ export function H2HLeagueView({
         </div>
       )}
 
-      <div className="mb-6 rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-4 py-3">
-          <h3 className="text-sm font-bold text-foreground">Players</h3>
+      {showLobby ? (
+        <div className="mb-6">
+          <H2HLobby
+            leagueId={league.id}
+            initialDraft={draft}
+            members={members}
+            initialReadyUserIds={readyUserIds}
+            currentUserId={currentUserId!}
+          />
         </div>
-        <div className="divide-y divide-border/50">
-          {members.map((member) => {
-            const isCurrentUser = member.user_id === currentUserId;
-            return (
-              <div
-                key={member.id}
-                className={`flex items-center gap-2 px-4 py-3 ${
-                  isCurrentUser ? "bg-primary/5" : ""
-                }`}
-              >
-                {member.profile?.avatar_url && (
-                  <img
-                    src={member.profile.avatar_url}
-                    alt=""
-                    className="h-6 w-6 rounded-full"
-                  />
-                )}
-                <span
-                  className={`text-sm ${isCurrentUser ? "font-semibold" : ""}`}
+      ) : (
+        <div className="mb-6 rounded-xl border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <h3 className="text-sm font-bold text-foreground">Players</h3>
+          </div>
+          <div className="divide-y divide-border/50">
+            {members.map((member) => {
+              const isCurrentUser = member.user_id === currentUserId;
+              return (
+                <div
+                  key={member.id}
+                  className={`flex items-center gap-2 px-4 py-3 ${
+                    isCurrentUser ? "bg-primary/5" : ""
+                  }`}
                 >
-                  {member.profile?.display_name ?? "Unknown"}
-                </span>
-                {isCurrentUser && (
-                  <span className="text-xs text-primary">(you)</span>
-                )}
+                  {member.profile?.avatar_url && (
+                    <img
+                      src={member.profile.avatar_url}
+                      alt=""
+                      className="h-6 w-6 rounded-full"
+                    />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      isCurrentUser ? "font-semibold" : ""
+                    }`}
+                  >
+                    {member.profile?.display_name ?? "Unknown"}
+                  </span>
+                  {isCurrentUser && (
+                    <span className="text-xs text-primary">(you)</span>
+                  )}
+                </div>
+              );
+            })}
+            {needsOpponent && (
+              <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+                <div className="h-6 w-6 rounded-full border border-dashed border-border" />
+                <span>Waiting for opponent…</span>
               </div>
-            );
-          })}
-          {needsOpponent && (
-            <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
-              <div className="h-6 w-6 rounded-full border border-dashed border-border" />
-              <span>Waiting for opponent…</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <RulesCard />
     </div>

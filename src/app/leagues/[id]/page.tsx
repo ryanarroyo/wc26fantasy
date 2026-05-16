@@ -5,6 +5,7 @@ import { RoundBreakdown } from "@/components/leagues/round-breakdown";
 import { RecentActivity } from "@/components/leagues/recent-activity";
 import { MatchPredictions } from "@/components/leagues/match-predictions";
 import { H2HLeagueView } from "@/components/leagues/h2h-league-view";
+import { DRAFT_DEADLINE_AT } from "@/lib/h2h/deadlines";
 import type { Profile, UserScore } from "@/lib/types/database";
 import { DeleteLeague } from "@/components/leagues/delete-league";
 import { LeagueTabs } from "./league-tabs";
@@ -35,20 +36,33 @@ export default async function LeagueDetailPage({
   if (!league) notFound();
 
   if (league.mode === "H2H_DRAFT") {
-    const [{ data: members }, { data: profiles }, { data: draft }] =
-      await Promise.all([
-        supabase
-          .from("league_members")
-          .select("*")
-          .eq("league_id", id)
-          .order("joined_at"),
-        supabase.from("profiles").select("*"),
-        supabase
-          .from("h2h_drafts")
-          .select("*")
-          .eq("league_id", id)
-          .maybeSingle(),
-      ]);
+    await supabase.rpc("h2h_maybe_expire_lobby", {
+      p_league_id: id,
+      p_cutoff: DRAFT_DEADLINE_AT.toISOString(),
+    });
+
+    const [
+      { data: members },
+      { data: profiles },
+      { data: draft },
+      { data: readyStates },
+    ] = await Promise.all([
+      supabase
+        .from("league_members")
+        .select("*")
+        .eq("league_id", id)
+        .order("joined_at"),
+      supabase.from("profiles").select("*"),
+      supabase
+        .from("h2h_drafts")
+        .select("*")
+        .eq("league_id", id)
+        .maybeSingle(),
+      supabase
+        .from("h2h_ready_states")
+        .select("*")
+        .eq("league_id", id),
+    ]);
 
     const profileMap = new Map(
       (profiles ?? []).map((p: any) => [p.id, p])
@@ -57,12 +71,14 @@ export default async function LeagueDetailPage({
       ...m,
       profile: profileMap.get(m.user_id) ?? null,
     }));
+    const readyUserIds = (readyStates ?? []).map((r: any) => r.user_id);
 
     return (
       <H2HLeagueView
         league={league}
         draft={draft ?? null}
         members={membersWithProfile}
+        readyUserIds={readyUserIds}
         currentUserId={user?.id}
       />
     );

@@ -96,19 +96,16 @@ export function H2HTournamentView({
           });
         }
       )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "matches" },
-        () => {
-          // Match changes affect statuses, brackets, and projected scores.
-          router.refresh();
-        }
-      )
+      // Match updates are already handled by RealtimeProvider in the root
+      // layout (it router.refresh()es on every matches UPDATE), so we don't
+      // duplicate the listener here. The h2h_scores subscription above keeps
+      // the scoreboard live in place; team statuses + projections refresh
+      // when the layout's listener triggers a server re-render.
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, league.id, router]);
+  }, [supabase, league.id]);
 
   const changeTab = (next: TournamentTab) => {
     setTab(next);

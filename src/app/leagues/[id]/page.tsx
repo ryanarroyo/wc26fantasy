@@ -5,7 +5,6 @@ import { RoundBreakdown } from "@/components/leagues/round-breakdown";
 import { RecentActivity } from "@/components/leagues/recent-activity";
 import { MatchPredictions } from "@/components/leagues/match-predictions";
 import { H2HLeagueView } from "@/components/leagues/h2h-league-view";
-import { DRAFT_DEADLINE_AT } from "@/lib/h2h/deadlines";
 import type { Profile, UserScore } from "@/lib/types/database";
 import { DeleteLeague } from "@/components/leagues/delete-league";
 import { LeagueTabs } from "./league-tabs";
@@ -36,10 +35,15 @@ export default async function LeagueDetailPage({
   if (!league) notFound();
 
   if (league.mode === "H2H_DRAFT") {
-    await supabase.rpc("h2h_maybe_expire_lobby", {
-      p_league_id: id,
-      p_cutoff: DRAFT_DEADLINE_AT.toISOString(),
-    });
+    // Best-effort maintenance: cancel a LOBBY past T-24h, and advance the
+    // draft via auto-pick if the turn timer has expired (mitigates the
+    // both-clients-offline stall — every page load by any member is a
+    // chance to unstick the draft). Both RPCs are idempotent and no-op
+    // when conditions aren't met.
+    await Promise.all([
+      supabase.rpc("h2h_maybe_expire_lobby", { p_league_id: id }),
+      supabase.rpc("h2h_autopick_if_expired", { p_league_id: id }),
+    ]);
 
     const [
       { data: members },

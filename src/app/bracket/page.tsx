@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { GroupStage } from "@/components/bracket/group-stage";
 import { KnockoutBracket } from "@/components/bracket/knockout-bracket";
+import { SyncStatus } from "@/components/bracket/sync-status";
 import type { Team, MatchWithTeams } from "@/lib/types/database";
 import { BracketTabs } from "./bracket-tabs";
 
@@ -38,6 +39,10 @@ export default async function BracketPage({
       ) : (
         <KnockoutBracket matches={matches} />
       )}
+
+      <div className="mt-8 border-t pt-4">
+        <SyncStatus />
+      </div>
     </div>
   );
 }

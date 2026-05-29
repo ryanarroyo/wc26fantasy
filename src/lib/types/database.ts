@@ -4,7 +4,7 @@ export type Team = {
   code: string;
   flag_url: string;
   group_letter: string;
-  api_football_id: number | null;
+  external_id: number | null;
   fifa_rank: number | null;
   pot: 1 | 2 | 3 | 4 | null;
   created_at: string;
@@ -25,7 +25,7 @@ export type Match = {
   status: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
   kickoff_at: string;
   venue: string | null;
-  api_football_id: number | null;
+  external_id: number | null;
   created_at: string;
   updated_at: string;
 };

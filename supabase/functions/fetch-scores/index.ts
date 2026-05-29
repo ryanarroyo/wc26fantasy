@@ -75,6 +75,44 @@ function isPollable(m: OurMatch, now: number): boolean {
   return false;
 }
 
+// Diagnostic / throttle headers documented at
+// https://docs.football-data.org/general/v4/lookup_tables.html#_response_headers
+interface FdRateHeaders {
+  apiVersion: string | null;
+  client: string | null;
+  requestsAvailable: number | null;
+  resetSeconds: number | null;
+}
+
+const FD_LOW_AVAILABLE_THRESHOLD = 3;
+
+function readFdHeaders(res: Response): FdRateHeaders {
+  const toInt = (v: string | null): number | null => {
+    if (v == null) return null;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : null;
+  };
+  return {
+    apiVersion: res.headers.get("X-API-Version"),
+    client: res.headers.get("X-Authenticated-Client"),
+    requestsAvailable: toInt(res.headers.get("X-RequestsAvailable")),
+    resetSeconds: toInt(res.headers.get("X-RequestCounter-Reset")),
+  };
+}
+
+function fdHeaderWarning(h: FdRateHeaders): string | null {
+  const w: string[] = [];
+  if (h.client === "anonymous") w.push("client=anonymous");
+  if (h.requestsAvailable != null && h.requestsAvailable < FD_LOW_AVAILABLE_THRESHOLD) {
+    w.push(`available=${h.requestsAvailable}`);
+  }
+  return w.length > 0 ? w.join(",") : null;
+}
+
+function fdHeaderSummary(h: FdRateHeaders): string {
+  return `client=${h.client ?? "?"},available=${h.requestsAvailable ?? "?"},reset=${h.resetSeconds ?? "?"}s`;
+}
+
 Deno.serve(async (req) => {
   const startedAt = Date.now();
   const url = new URL(req.url);
@@ -101,6 +139,7 @@ Deno.serve(async (req) => {
     matchesUpdated: number,
     httpStatus: number,
     error?: string,
+    fdHeaders?: FdRateHeaders,
   ) => {
     if (dryRun) return;
     await sb.from("cron_runs").insert({
@@ -111,6 +150,10 @@ Deno.serve(async (req) => {
       http_status: httpStatus,
       error_message: error ?? null,
       duration_ms: Date.now() - startedAt,
+      fd_api_version: fdHeaders?.apiVersion ?? null,
+      fd_client: fdHeaders?.client ?? null,
+      fd_requests_available: fdHeaders?.requestsAvailable ?? null,
+      fd_reset_seconds: fdHeaders?.resetSeconds ?? null,
     });
   };
 
@@ -136,11 +179,20 @@ Deno.serve(async (req) => {
     );
   }
 
+  const fdHeaders = readFdHeaders(fdRes);
+
   if (!fdRes.ok) {
     const body = await fdRes.text();
-    await recordRun(false, null, 0, fdRes.status, `FD ${fdRes.status}: ${body.slice(0, 200)}`);
+    await recordRun(
+      false,
+      null,
+      0,
+      fdRes.status,
+      `FD ${fdRes.status}: ${body.slice(0, 200)} [${fdHeaderSummary(fdHeaders)}]`,
+      fdHeaders,
+    );
     return new Response(
-      JSON.stringify({ error: `football-data.org ${fdRes.status}` }),
+      JSON.stringify({ error: `football-data.org ${fdRes.status}`, fd_headers: fdHeaders }),
       { status: 502, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -158,9 +210,9 @@ Deno.serve(async (req) => {
 
   if (matchesRes.error || teamsRes.error) {
     const err = matchesRes.error?.message ?? teamsRes.error?.message ?? "db error";
-    await recordRun(false, fixtures.length, 0, 500, err);
+    await recordRun(false, fixtures.length, 0, 500, err, fdHeaders);
     return new Response(
-      JSON.stringify({ error: err }),
+      JSON.stringify({ error: err, fd_headers: fdHeaders }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -254,7 +306,15 @@ Deno.serve(async (req) => {
     }
   }
 
-  await recordRun(true, fixtures.length, matchesUpdated, 200);
+  const warning = fdHeaderWarning(fdHeaders);
+  await recordRun(
+    true,
+    fixtures.length,
+    matchesUpdated,
+    200,
+    warning ? `warn: ${warning}` : undefined,
+    fdHeaders,
+  );
 
   return new Response(
     JSON.stringify({
@@ -263,6 +323,8 @@ Deno.serve(async (req) => {
       matches_updated: matchesUpdated,
       scoring_triggered: scoringTriggered,
       duration_ms: Date.now() - startedAt,
+      fd_headers: fdHeaders,
+      ...(warning ? { warning } : {}),
       ...(dryRun || changes.length > 0 ? { changes } : {}),
     }),
     { headers: { "Content-Type": "application/json" } },

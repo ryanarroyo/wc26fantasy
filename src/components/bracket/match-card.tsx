@@ -1,8 +1,8 @@
 import type { MatchWithTeams } from "@/lib/types/database";
+import { KickoffTime } from "./kickoff-time";
 import { TeamBadge } from "./team-badge";
 
 export function MatchCard({ match }: { match: MatchWithTeams }) {
-  const kickoff = new Date(match.kickoff_at);
   const isLive = match.status === "LIVE";
   const isFinished = match.status === "FINISHED";
 
@@ -21,18 +21,7 @@ export function MatchCard({ match }: { match: MatchWithTeams }) {
           </span>
         )}
         {isFinished && <span className="font-medium text-primary">FT</span>}
-        {!isLive && !isFinished && (
-          <span>
-            {kickoff.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            })}{" "}
-            {kickoff.toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </span>
-        )}
+        {!isLive && !isFinished && <KickoffTime kickoffAt={match.kickoff_at} />}
       </div>
 
       <div className="space-y-1.5">

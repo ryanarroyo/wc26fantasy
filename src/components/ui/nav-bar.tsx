@@ -8,6 +8,7 @@ import type { User } from "@supabase/supabase-js";
 
 const navLinks = [
   { href: "/bracket", label: "Bracket" },
+  { href: "/schedule", label: "Schedule" },
   { href: "/predictions", label: "Predictions" },
   { href: "/leagues", label: "Leagues" },
   { href: "/stats", label: "Stats" },

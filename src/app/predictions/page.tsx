@@ -23,6 +23,7 @@ export default async function PredictionsPage({
         "*, home_team:teams!matches_home_team_id_fkey(*), away_team:teams!matches_away_team_id_fkey(*), winner_team:teams!matches_winner_team_id_fkey(*)"
       )
       .eq("round", round)
+      .order("kickoff_at")
       .order("match_number"),
     user
       ? supabase.from("predictions").select("*").eq("user_id", user.id)

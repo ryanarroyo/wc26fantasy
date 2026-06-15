@@ -117,6 +117,11 @@ Deno.serve(async (req) => {
   const startedAt = Date.now();
   const url = new URL(req.url);
   const dryRun = url.searchParams.get("dry_run") === "true";
+  // Repair mode reconciles every externally-mapped match against the provider,
+  // ignoring the normal polling window, so already-FINISHED matches (older than
+  // the 24h repoll window) can be re-aligned and re-scored. Combine with
+  // dry_run=true to preview corrections before writing.
+  const repair = url.searchParams.get("repair") === "true";
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -234,29 +239,65 @@ Deno.serve(async (req) => {
   for (const fx of fixtures) {
     const ours = matchByExt.get(fx.id);
     if (!ours) continue;
-    if (!isPollable(ours, now)) continue;
+    if (!repair && !isPollable(ours, now)) continue;
 
     const newStatus = mapStatus(fx.status);
-    const homeScore = fx.score?.fullTime?.home ?? null;
-    const awayScore = fx.score?.fullTime?.away ?? null;
-    const homePen = fx.score?.penalties?.home ?? null;
-    const awayPen = fx.score?.penalties?.away ?? null;
 
-    // Knockout team backfill: if our team slot is NULL but FD now has it, fill in
-    let newHome = ours.home_team_id;
-    let newAway = ours.away_team_id;
-    if (newHome == null && fx.homeTeam.id != null) {
-      newHome = teamByExt.get(fx.homeTeam.id) ?? null;
-    }
-    if (newAway == null && fx.awayTeam.id != null) {
-      newAway = teamByExt.get(fx.awayTeam.id) ?? null;
+    // Map the provider's home/away teams onto our team ids. external_id was
+    // backfilled by an *unordered* team pair (see 20260528000002), so the
+    // provider's "home" is NOT guaranteed to be our home. We must align by team
+    // identity before writing — otherwise decisive results get stored reversed
+    // and winner_team_id points at the loser. (Draws are symmetric, which is
+    // why only non-draw matches surfaced the bug.)
+    const fdHomeTeamId =
+      fx.homeTeam.id != null ? teamByExt.get(fx.homeTeam.id) ?? null : null;
+    const fdAwayTeamId =
+      fx.awayTeam.id != null ? teamByExt.get(fx.awayTeam.id) ?? null : null;
+
+    // Scores as the provider reports them (provider-home / provider-away).
+    const fdHomeScore = fx.score?.fullTime?.home ?? null;
+    const fdAwayScore = fx.score?.fullTime?.away ?? null;
+    const fdHomePen = fx.score?.penalties?.home ?? null;
+    const fdAwayPen = fx.score?.penalties?.away ?? null;
+
+    // Resolve our team slots. Knockout slots stay NULL until the provider
+    // populates them; filling from the provider also establishes orientation.
+    const newHome = ours.home_team_id ?? fdHomeTeamId;
+    const newAway = ours.away_team_id ?? fdAwayTeamId;
+
+    // Is the provider's home == our home, or is the fixture flipped?
+    let flipped = false;
+    if (
+      newHome != null && newAway != null &&
+      fdHomeTeamId != null && fdAwayTeamId != null
+    ) {
+      if (newHome === fdHomeTeamId && newAway === fdAwayTeamId) {
+        flipped = false;
+      } else if (newHome === fdAwayTeamId && newAway === fdHomeTeamId) {
+        flipped = true;
+      } else {
+        // Teams don't line up either way → external_id maps to the wrong
+        // fixture. Refuse to write a scoreline we can't trust; surface it.
+        changes.push({
+          match_id: ours.id,
+          external_id: fx.id,
+          error: `team mismatch: ours=(${newHome},${newAway}) fd=(${fdHomeTeamId},${fdAwayTeamId})`,
+        });
+        continue;
+      }
     }
 
-    // Determine winner_team_id (only meaningful when FINISHED)
+    // Align scores/penalties to OUR home/away orientation.
+    const homeScore = flipped ? fdAwayScore : fdHomeScore;
+    const awayScore = flipped ? fdHomeScore : fdAwayScore;
+    const homePen = flipped ? fdAwayPen : fdHomePen;
+    const awayPen = flipped ? fdHomePen : fdAwayPen;
+
+    // Winner keyed to the actual team id, so orientation can't flip it.
     let winnerId: number | null = null;
     if (newStatus === "FINISHED") {
-      if (fx.score.winner === "HOME_TEAM") winnerId = newHome;
-      else if (fx.score.winner === "AWAY_TEAM") winnerId = newAway;
+      if (fx.score.winner === "HOME_TEAM") winnerId = fdHomeTeamId;
+      else if (fx.score.winner === "AWAY_TEAM") winnerId = fdAwayTeamId;
       // DRAW or null → leave winnerId null
     }
 
@@ -323,6 +364,7 @@ Deno.serve(async (req) => {
   return new Response(
     JSON.stringify({
       dry_run: dryRun,
+      repair,
       fixtures_returned: fixtures.length,
       matches_updated: matchesUpdated,
       scoring_triggered: scoringTriggered,

@@ -49,9 +49,26 @@ Record the `id` (call it `FX_ID`), `utcDate`, and home/away `id`s.
 
 ### Step 2 — insert the synthetic match
 
+The score-sync aligns scores by **team identity** and refuses to write when the
+match's teams don't match the fixture's teams (the orientation guard). So the
+synthetic match must use the fixture's two actual teams — placeholder teams
+would now (correctly) be skipped with a `team mismatch` entry in `changes`.
+
+First, resolve our team ids for the fixture's two teams (from Step 1's home/away
+FD ids):
+
+```sql
+SELECT id, name, external_id
+FROM public.teams
+WHERE external_id IN (<FD homeTeam.id>, <FD awayTeam.id>);
+```
+
+Then insert the row using those ids. Orientation can be either way on purpose —
+the sync realigns by identity, so this also exercises the flip path:
+
 ```sql
 -- A throwaway match row. Use a high ID to make it visually obvious it's a test row.
--- home_team_id and away_team_id can be any two existing teams (we won't grade predictions on this).
+-- home_team_id / away_team_id MUST be the fixture's two teams (see query above).
 INSERT INTO public.matches (
   id, round, group_letter, match_number,
   home_team_id, away_team_id,
@@ -59,7 +76,7 @@ INSERT INTO public.matches (
 ) VALUES (
   9999,
   'GROUP', 'A', 9999,
-  1, 2,                                    -- placeholder teams
+  <our team id for FD home>, <our team id for FD away>,
   <FX_ID>::int,
   '<FD utcDate>'::timestamptz,
   'TEST',
@@ -67,7 +84,9 @@ INSERT INTO public.matches (
 );
 ```
 
-Replace `<FX_ID>` and `<FD utcDate>` with the values from Step 1.
+Replace `<FX_ID>`, `<FD utcDate>`, and the two team ids with the values from Step 1.
+To deliberately test the flip path, swap the two team ids — the final stored
+`home_score`/`away_score` should still match reality (home score with the home team).
 
 ### Step 3 — watch the cron fire
 
@@ -131,6 +150,7 @@ DELETE FROM public.matches WHERE id = 9999;
 |---|---|---|
 | Gate never opens | `kickoff_at` wrong; clock skew | Verify `utcDate` matched FD response exactly |
 | Cron fires but `matches_updated` stays 0 | FD fixture ID mismatch (typo) | Re-check the `external_id` you inserted |
+| Cron fires, `changes` has `team mismatch ...` | match's teams ≠ the fixture's teams | Set `home_team_id`/`away_team_id` to the fixture's actual teams (orientation guard working as intended) |
 | Cron fires, function returns 401 | `cron_secret` Vault value ≠ `CRON_SECRET` Edge Function secret | Re-set both to the same value |
 | Function 502 with `FD <status>` | football-data.org rate limit or auth | Wait 1 min and retry; check `FD_API_KEY` Edge Function secret |
 | Function 500 with DB error | `cron_runs` insert RLS denied | Confirm `SUPABASE_SERVICE_ROLE_KEY` Edge Function secret is set |
@@ -203,6 +223,17 @@ WHERE ran_at > now() - interval '24 hours';
 - If `cron.job` table empty: re-run schedule migration
 - If Vault `cron_secret` missing: re-add via `SELECT vault.create_secret(...)`
 - If dry-run returns errors: check Edge Function logs in Supabase Dashboard
+
+---
+
+## Repairing reversed / mis-mapped scores
+
+If decisive scorelines are stored reversed (winner shows as loser) because a
+match's seeded home/away orientation was the reverse of the provider's, use
+`supabase/repair/reconcile-reversed-scores.sql`. It documents the `repair=true`
+re-sync (dry-run first) and the triage/verify queries. Note: a reversed row is
+internally self-consistent, so it can only be detected against the provider —
+the re-sync is the authoritative fix, not a manual `UPDATE`.
 
 ---
 

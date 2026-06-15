@@ -294,13 +294,17 @@ Deno.serve(async (req) => {
     }
     matchesUpdated++;
 
-    // Trigger prediction scoring whenever a FINISHED match has new score/winner data.
-    // Covers both first-finish and late-correction cases (ADR-0001 Q10).
+    // Trigger prediction scoring whenever a match finishes or its score/winner
+    // is later corrected (ADR-0001 Q10). The FINISHED transition itself must
+    // trigger scoring: a drawn match whose score was already recorded while LIVE
+    // changes only `status` on the finishing poll (winner_team_id stays null for
+    // a draw), so score/winner-change alone would miss it.
+    const becameFinished = "status" in patch && newStatus === "FINISHED";
     const scoreOrWinnerChanged =
       "home_score" in patch ||
       "away_score" in patch ||
       "winner_team_id" in patch;
-    if (newStatus === "FINISHED" && scoreOrWinnerChanged) {
+    if (newStatus === "FINISHED" && (becameFinished || scoreOrWinnerChanged)) {
       const rpc = await sb.rpc("calculate_prediction_points", { p_match_id: ours.id });
       if (!rpc.error) scoringTriggered++;
     }

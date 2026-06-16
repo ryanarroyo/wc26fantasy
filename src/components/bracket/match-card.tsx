@@ -1,4 +1,5 @@
 import type { MatchWithTeams } from "@/lib/types/database";
+import { liveLabel } from "@/lib/match-status";
 import { KickoffTime } from "./kickoff-time";
 import { TeamBadge } from "./team-badge";
 
@@ -15,9 +16,9 @@ export function MatchCard({ match }: { match: MatchWithTeams }) {
       <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>Match {match.match_number}</span>
         {isLive && (
-          <span className="flex items-center gap-1 font-medium text-live">
+          <span className="flex items-center gap-1 font-medium tabular-nums text-live">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-live" />
-            LIVE
+            {liveLabel(match)}
           </span>
         )}
         {isFinished && <span className="font-medium text-primary">FT</span>}

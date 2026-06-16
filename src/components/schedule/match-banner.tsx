@@ -1,4 +1,5 @@
 import type { MatchWithTeams, Team } from "@/lib/types/database";
+import { liveLabel } from "@/lib/match-status";
 
 const ROUND_LABELS: Record<string, string> = {
   GROUP: "Group Stage",
@@ -15,14 +16,6 @@ function roundLabel(match: MatchWithTeams): string {
     return `Group ${match.group_letter}`;
   }
   return ROUND_LABELS[match.round] ?? match.round;
-}
-
-// Live clock label, e.g. "67'" or "45+3'". Falls back to "LIVE" before the
-// provider reports a minute (kickoff, half-time).
-function liveLabel(match: MatchWithTeams): string {
-  if (match.minute == null) return "LIVE";
-  const injury = match.injury_time ? `+${match.injury_time}` : "";
-  return `${match.minute}${injury}'`;
 }
 
 function PinIcon() {

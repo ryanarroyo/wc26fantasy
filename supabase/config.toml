@@ -1,0 +1,10 @@
+# Supabase project config. Kept minimal — its job is to make the edge-function
+# settings that previously lived only as *deployed* state (notably verify_jwt)
+# declarative and version-controlled, so CI deploys reproduce them exactly.
+project_id = "hhafkmzuqgobmvuiblko"
+
+# fetch-scores authenticates callers with its own `x-cron-secret` shared secret
+# (the pg_cron job passes it), so it must NOT require a Supabase JWT. Losing this
+# would 401 the cron and silently stop score syncing.
+[functions.fetch-scores]
+verify_jwt = false

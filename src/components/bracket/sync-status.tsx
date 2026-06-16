@@ -22,6 +22,9 @@ export async function SyncStatus() {
   const ageMin = Math.max(0, Math.round((Date.now() - ranAt.getTime()) / 60000));
   const stale = ageMin > STALE_THRESHOLD_MIN;
   const failed = data.success === false;
+  // A successful run can still carry a message (rate-limit warnings, per-match
+  // errors folded in by fetch-scores) — surface those as a warning too.
+  const hasMessage = Boolean(data.error_message);
 
   const label =
     ageMin === 0 ? "moments ago"
@@ -30,9 +33,9 @@ export async function SyncStatus() {
     : ageMin < 120 ? "1 hour ago"
     : `${Math.floor(ageMin / 60)} hours ago`;
 
-  const cls = failed || stale ? "text-amber-600" : "text-gray-500";
+  const cls = failed || stale || hasMessage ? "text-amber-600" : "text-gray-500";
   const prefix = failed ? "Last sync failed " : "Scores last synced ";
-  const suffix = failed && data.error_message ? ` — ${data.error_message}` : "";
+  const suffix = data.error_message ? ` — ${data.error_message}` : "";
 
   return (
     <p className={`text-xs ${cls}`}>

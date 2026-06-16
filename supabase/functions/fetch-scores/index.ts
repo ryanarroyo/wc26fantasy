@@ -38,6 +38,9 @@ interface FdFixture {
   utcDate: string;
   status: string;
   stage: string;
+  // Live-clock fields, present only with X-Api-Version: v4.1 and while in play.
+  minute?: number | null;
+  injuryTime?: number | null;
   homeTeam: { id: number | null };
   awayTeam: { id: number | null };
   score: {
@@ -58,6 +61,8 @@ interface OurMatch {
   home_penalties: number | null;
   away_penalties: number | null;
   winner_team_id: number | null;
+  minute: number | null;
+  injury_time: number | null;
   kickoff_at: string;
 }
 
@@ -174,7 +179,9 @@ Deno.serve(async (req) => {
   let fdRes: Response;
   try {
     fdRes = await fetch(`${FD_BASE}/competitions/WC/matches`, {
-      headers: { "X-Auth-Token": fdKey },
+      // X-Api-Version v4.1 opts into the `minute` / `injuryTime` live-clock
+      // fields (Livescore plan add-on) without altering the stable v4 shape.
+      headers: { "X-Auth-Token": fdKey, "X-Api-Version": "v4.1" },
     });
   } catch (e) {
     await recordRun(false, null, 0, 502, `fetch failed: ${e}`);
@@ -208,7 +215,7 @@ Deno.serve(async (req) => {
   // Load all matches with an external_id, and team external_id → our id map
   const [matchesRes, teamsRes] = await Promise.all([
     sb.from("matches").select(
-      "id, external_id, status, home_team_id, away_team_id, home_score, away_score, home_penalties, away_penalties, winner_team_id, kickoff_at",
+      "id, external_id, status, home_team_id, away_team_id, home_score, away_score, home_penalties, away_penalties, winner_team_id, minute, injury_time, kickoff_at",
     ).not("external_id", "is", null),
     sb.from("teams").select("id, external_id").not("external_id", "is", null),
   ]);
@@ -293,6 +300,11 @@ Deno.serve(async (req) => {
     const homePen = flipped ? fdAwayPen : fdHomePen;
     const awayPen = flipped ? fdHomePen : fdAwayPen;
 
+    // Live clock (v4.1). Only meaningful while in play; cleared to NULL once the
+    // match leaves LIVE so finished/scheduled rows never show a stale minute.
+    const newMinute = newStatus === "LIVE" ? fx.minute ?? null : null;
+    const newInjury = newStatus === "LIVE" ? fx.injuryTime ?? null : null;
+
     // Winner keyed to the actual team id, so orientation can't flip it.
     let winnerId: number | null = null;
     if (newStatus === "FINISHED") {
@@ -310,6 +322,8 @@ Deno.serve(async (req) => {
     if (ours.away_penalties !== awayPen) patch.away_penalties = awayPen;
     if (ours.home_team_id !== newHome) patch.home_team_id = newHome;
     if (ours.away_team_id !== newAway) patch.away_team_id = newAway;
+    if (ours.minute !== newMinute) patch.minute = newMinute;
+    if (ours.injury_time !== newInjury) patch.injury_time = newInjury;
     // Sync kickoff_at from authoritative vendor
     const fdKickoffMs = new Date(fx.utcDate).getTime();
     if (fdKickoffMs !== new Date(ours.kickoff_at).getTime()) {

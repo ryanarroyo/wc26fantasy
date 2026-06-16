@@ -17,6 +17,14 @@ function roundLabel(match: MatchWithTeams): string {
   return ROUND_LABELS[match.round] ?? match.round;
 }
 
+// Live clock label, e.g. "67'" or "45+3'". Falls back to "LIVE" before the
+// provider reports a minute (kickoff, half-time).
+function liveLabel(match: MatchWithTeams): string {
+  if (match.minute == null) return "LIVE";
+  const injury = match.injury_time ? `+${match.injury_time}` : "";
+  return `${match.minute}${injury}'`;
+}
+
 function PinIcon() {
   return (
     <svg
@@ -128,9 +136,9 @@ export function MatchBanner({ match }: { match: MatchWithTeams }) {
       <div className="flex items-center gap-3 sm:gap-6">
         <div className="w-14 shrink-0 text-center sm:w-20">
           {isLive ? (
-            <span className="flex items-center justify-center gap-1 text-sm font-bold text-live">
+            <span className="flex items-center justify-center gap-1 text-sm font-bold tabular-nums text-live">
               <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-live" />
-              LIVE
+              {liveLabel(match)}
             </span>
           ) : isFinished ? (
             <span className="text-sm font-bold text-primary">FT</span>

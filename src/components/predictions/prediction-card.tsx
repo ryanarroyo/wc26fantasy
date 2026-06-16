@@ -84,7 +84,7 @@ export function PredictionCard({
                   ? "Remove confidence boost"
                   : canToggleConfident
                     ? "Mark as confident (1.5x points)"
-                    : "Max 3 confident picks per round"
+                    : "You've used all 3 confident picks for this round"
               }
               className={`transition-colors ${
                 isConfident

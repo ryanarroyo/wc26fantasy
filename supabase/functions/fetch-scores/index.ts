@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { alignFixture } from "./align.ts";
 
 const FD_BASE = "https://api.football-data.org/v4";
 const SOURCE = "fetch-scores";
@@ -252,74 +253,57 @@ Deno.serve(async (req) => {
 
     // Map the provider's home/away teams onto our team ids. external_id was
     // backfilled by an *unordered* team pair (see 20260528000002), so the
-    // provider's "home" is NOT guaranteed to be our home. We must align by team
-    // identity before writing — otherwise decisive results get stored reversed
-    // and winner_team_id points at the loser. (Draws are symmetric, which is
-    // why only non-draw matches surfaced the bug.)
+    // provider's "home" is NOT guaranteed to be our home.
     const fdHomeTeamId =
       fx.homeTeam.id != null ? teamByExt.get(fx.homeTeam.id) ?? null : null;
     const fdAwayTeamId =
       fx.awayTeam.id != null ? teamByExt.get(fx.awayTeam.id) ?? null : null;
 
-    // Scores as the provider reports them (provider-home / provider-away).
-    const fdHomeScore = fx.score?.fullTime?.home ?? null;
-    const fdAwayScore = fx.score?.fullTime?.away ?? null;
-    const fdHomePen = fx.score?.penalties?.home ?? null;
-    const fdAwayPen = fx.score?.penalties?.away ?? null;
+    // Align the provider's scoreline onto OUR orientation by team identity, so
+    // decisive results can't be stored reversed and winner_team_id can't point
+    // at the loser. Pure + unit-tested in align.ts.
+    const aligned = alignFixture({
+      ourHomeTeamId: ours.home_team_id,
+      ourAwayTeamId: ours.away_team_id,
+      fdHomeTeamId,
+      fdAwayTeamId,
+      fdHomeScore: fx.score?.fullTime?.home ?? null,
+      fdAwayScore: fx.score?.fullTime?.away ?? null,
+      fdHomePen: fx.score?.penalties?.home ?? null,
+      fdAwayPen: fx.score?.penalties?.away ?? null,
+      fdWinner: fx.score?.winner ?? null,
+      finished: newStatus === "FINISHED",
+    });
 
-    // Resolve our team slots. Knockout slots stay NULL until the provider
-    // populates them; filling from the provider also establishes orientation.
-    const newHome = ours.home_team_id ?? fdHomeTeamId;
-    const newAway = ours.away_team_id ?? fdAwayTeamId;
-
-    // Is the provider's home == our home, or is the fixture flipped?
-    let flipped = false;
-    if (
-      newHome != null && newAway != null &&
-      fdHomeTeamId != null && fdAwayTeamId != null
-    ) {
-      if (newHome === fdHomeTeamId && newAway === fdAwayTeamId) {
-        flipped = false;
-      } else if (newHome === fdAwayTeamId && newAway === fdHomeTeamId) {
-        flipped = true;
-      } else {
-        // Teams don't line up either way → external_id maps to the wrong
-        // fixture. Refuse to write a scoreline we can't trust; surface it.
-        changes.push({
-          match_id: ours.id,
-          external_id: fx.id,
-          error: `team mismatch: ours=(${newHome},${newAway}) fd=(${fdHomeTeamId},${fdAwayTeamId})`,
-        });
-        continue;
-      }
+    if (!aligned.ok) {
+      // external_id maps to the wrong fixture → refuse to write a scoreline we
+      // can't trust, and surface it (folded into the run's health log below).
+      changes.push({
+        match_id: ours.id,
+        external_id: fx.id,
+        error:
+          `team mismatch: ours=(${aligned.ourHomeTeamId},${aligned.ourAwayTeamId}) ` +
+          `fd=(${aligned.fdHomeTeamId},${aligned.fdAwayTeamId})`,
+      });
+      continue;
     }
 
-    // Align scores/penalties to OUR home/away orientation.
-    const homeScore = flipped ? fdAwayScore : fdHomeScore;
-    const awayScore = flipped ? fdHomeScore : fdAwayScore;
-    const homePen = flipped ? fdAwayPen : fdHomePen;
-    const awayPen = flipped ? fdHomePen : fdAwayPen;
+    const newHome = aligned.homeTeamId;
+    const newAway = aligned.awayTeamId;
+    const winnerId = aligned.winnerTeamId;
 
     // Live clock (v4.1). Only meaningful while in play; cleared to NULL once the
     // match leaves LIVE so finished/scheduled rows never show a stale minute.
     const newMinute = newStatus === "LIVE" ? fx.minute ?? null : null;
     const newInjury = newStatus === "LIVE" ? fx.injuryTime ?? null : null;
 
-    // Winner keyed to the actual team id, so orientation can't flip it.
-    let winnerId: number | null = null;
-    if (newStatus === "FINISHED") {
-      if (fx.score.winner === "HOME_TEAM") winnerId = fdHomeTeamId;
-      else if (fx.score.winner === "AWAY_TEAM") winnerId = fdAwayTeamId;
-      // DRAW or null → leave winnerId null
-    }
-
     // Build patch with only changed fields
     const patch: Record<string, unknown> = {};
     if (ours.status !== newStatus) patch.status = newStatus;
-    if (ours.home_score !== homeScore) patch.home_score = homeScore;
-    if (ours.away_score !== awayScore) patch.away_score = awayScore;
-    if (ours.home_penalties !== homePen) patch.home_penalties = homePen;
-    if (ours.away_penalties !== awayPen) patch.away_penalties = awayPen;
+    if (ours.home_score !== aligned.homeScore) patch.home_score = aligned.homeScore;
+    if (ours.away_score !== aligned.awayScore) patch.away_score = aligned.awayScore;
+    if (ours.home_penalties !== aligned.homePen) patch.home_penalties = aligned.homePen;
+    if (ours.away_penalties !== aligned.awayPen) patch.away_penalties = aligned.awayPen;
     if (ours.home_team_id !== newHome) patch.home_team_id = newHome;
     if (ours.away_team_id !== newAway) patch.away_team_id = newAway;
     if (ours.minute !== newMinute) patch.minute = newMinute;
@@ -366,12 +350,26 @@ Deno.serve(async (req) => {
   }
 
   const warning = fdHeaderWarning(fdHeaders);
+  // Per-match failures (wrong-fixture mappings, row update errors) otherwise
+  // live only in the response body, which nothing reads — they'd silently lower
+  // matches_updated. Fold a summary into the run's health log so they surface in
+  // cron_runs and the in-app sync status.
+  const matchErrors = changes.filter((c) => typeof c.error === "string");
+  const messageParts: string[] = [];
+  if (warning) messageParts.push(`warn: ${warning}`);
+  if (matchErrors.length > 0) {
+    const detail = matchErrors.map((c) => `#${c.match_id}: ${c.error}`).join("; ");
+    messageParts.push(`${matchErrors.length} match error(s): ${detail}`);
+  }
+  const errorMessage =
+    messageParts.length > 0 ? messageParts.join(" | ").slice(0, 500) : undefined;
+
   await recordRun(
     true,
     fixtures.length,
     matchesUpdated,
     200,
-    warning ? `warn: ${warning}` : undefined,
+    errorMessage,
     fdHeaders,
   );
 

@@ -23,6 +23,8 @@ export type Match = {
   away_penalties: number | null;
   winner_team_id: number | null;
   status: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
+  minute: number | null;
+  injury_time: number | null;
   kickoff_at: string;
   venue: string | null;
   external_id: number | null;

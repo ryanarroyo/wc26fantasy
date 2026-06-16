@@ -19,6 +19,26 @@ const ROUND_LABELS: Record<string, string> = {
   FINAL: "Final",
 };
 
+function StarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+    </svg>
+  );
+}
+
+function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+      <path
+        fillRule="evenodd"
+        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
 type PredictionInput = {
   match_id: number;
   predicted_home: number;
@@ -74,6 +94,17 @@ export function PredictionForm({
   const confidentCount = Array.from(confidences.values()).filter(Boolean).length;
   const atConfidentMax = confidentCount >= MAX_CONFIDENT;
   const roundLabel = ROUND_LABELS[round] ?? round;
+
+  // The actual games marked confident this round — including ones that have
+  // already kicked off / finished, so the user can see every pick that counts
+  // toward the limit (not just the editable ones). Ordered as the cards appear.
+  const confidentMatches = matches
+    .filter((m) => confidences.get(m.id))
+    .map((m) => ({
+      match: m,
+      locked: new Date(m.kickoff_at) <= new Date(),
+      finished: m.status === "FINISHED",
+    }));
 
   // Re-sync local edit state whenever the server sends fresh predictions (e.g.
   // after a save + router.refresh(), or navigating back to this round). useState
@@ -296,6 +327,36 @@ export function PredictionForm({
           <span className="font-medium">{MAX_CONFIDENT} per round</span>, covering every match in the{" "}
           {roundLabel}.
         </span>
+      </div>
+
+      {/* Which games are currently marked confident (incl. ones already played) */}
+      <div className="flex flex-wrap items-center gap-1.5 px-1 text-xs">
+        <span className="text-muted-foreground">
+          Confident picks ({confidentCount}/{MAX_CONFIDENT}):
+        </span>
+        {confidentMatches.length === 0 ? (
+          <span className="italic text-muted-foreground/70">
+            none yet — tap a star to add one
+          </span>
+        ) : (
+          confidentMatches.map(({ match, locked, finished }) => (
+            <span
+              key={match.id}
+              title={
+                finished
+                  ? "Already played — still counts toward your 3"
+                  : locked
+                    ? "Locked at kickoff — still counts toward your 3"
+                    : "Marked confident (1.5× points)"
+              }
+              className="inline-flex items-center gap-1 rounded-full border border-secondary/40 bg-secondary/10 px-2 py-0.5 font-medium text-secondary"
+            >
+              <StarIcon className="h-3 w-3" />
+              {match.home_team?.code ?? "?"} v {match.away_team?.code ?? "?"}
+              {locked && <LockIcon className="h-2.5 w-2.5 opacity-70" />}
+            </span>
+          ))
+        )}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

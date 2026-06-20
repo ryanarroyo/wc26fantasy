@@ -34,3 +34,15 @@ export function cumulativePointsFor(depth: H2HDepth | null): number {
   if (depth === null) return 0;
   return CUMULATIVE_POINTS[depth];
 }
+
+// Whether a drafted team is still standing. A team is "alive" unless its
+// h2h_team_alive flag is explicitly false or it failed to advance from the
+// group. During the group stage both `alive` and `locked_depth` are null, so a
+// team counts as alive until proven otherwise. This is the single source of
+// truth shared by the Rosters and Scoreboard tabs.
+export function isTeamAlive(status: {
+  alive: boolean | null;
+  locked_depth: H2HDepth | null;
+}): boolean {
+  return status.alive !== false && status.locked_depth !== "NOT_ADVANCED";
+}

@@ -1,15 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { alignFixture } from "./align.ts";
+import { isPollable } from "./pollable.ts";
 
 const FD_BASE = "https://api.football-data.org/v4";
 const SOURCE = "fetch-scores";
-
-// Lifecycle windows from ADR-0001 Q10
-const PRE_WINDOW_MS = 5 * 60 * 1000;
-const POST_WINDOW_MS = 165 * 60 * 1000;
-const FINISHED_REPOLL_MS = 24 * 60 * 60 * 1000;
-const POSTPONED_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 type OurStatus = "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED" | "CANCELLED";
 
@@ -65,20 +60,6 @@ interface OurMatch {
   minute: number | null;
   injury_time: number | null;
   kickoff_at: string;
-}
-
-function isPollable(m: OurMatch, now: number): boolean {
-  const kickoff = new Date(m.kickoff_at).getTime();
-  if (m.status === "SCHEDULED" || m.status === "LIVE") {
-    return kickoff - PRE_WINDOW_MS <= now && now <= kickoff + POST_WINDOW_MS;
-  }
-  if (m.status === "FINISHED") {
-    return now <= kickoff + FINISHED_REPOLL_MS;
-  }
-  if (m.status === "POSTPONED") {
-    return now <= kickoff + POSTPONED_MAX_AGE_MS;
-  }
-  return false;
 }
 
 // Diagnostic / throttle headers documented at

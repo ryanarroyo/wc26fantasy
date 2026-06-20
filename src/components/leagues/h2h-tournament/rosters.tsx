@@ -5,6 +5,7 @@ import {
   CUMULATIVE_POINTS,
   DEPTH_LABELS,
   DEPTH_SHORT_LABELS,
+  isTeamAlive,
 } from "@/lib/h2h/scoring";
 import type {
   H2HTeamStatus,
@@ -64,10 +65,10 @@ function PlayerRoster({
   isCurrent: boolean;
 }) {
   const alive = teamStatuses
-    .filter((s) => s.alive !== false && s.locked_depth !== "NOT_ADVANCED")
+    .filter((s) => isTeamAlive(s))
     .sort((a, b) => depthRank(b.projected_depth) - depthRank(a.projected_depth));
   const eliminated = teamStatuses
-    .filter((s) => s.alive === false || s.locked_depth === "NOT_ADVANCED")
+    .filter((s) => !isTeamAlive(s))
     .sort((a, b) => depthRank(b.locked_depth) - depthRank(a.locked_depth));
 
   return (

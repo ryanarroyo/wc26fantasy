@@ -195,6 +195,7 @@ export function H2HTournamentView({
         <H2HScoreboard
           members={members}
           scores={scores}
+          teamStatuses={initialTeamStatuses}
           ownerColors={ownerBorderColors}
           upcomingMatches={upcoming}
           currentUserId={currentUserId}

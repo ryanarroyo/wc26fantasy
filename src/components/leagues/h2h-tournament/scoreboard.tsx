@@ -1,7 +1,9 @@
 "use client";
 
+import { isTeamAlive } from "@/lib/h2h/scoring";
 import type {
   H2HScore,
+  H2HTeamStatus,
   LeagueMember,
   MatchWithTeams,
   Profile,
@@ -9,9 +11,12 @@ import type {
 
 type MemberWithProfile = LeagueMember & { profile: Profile | null };
 
+type AliveCount = { alive: number; eliminated: number };
+
 export function H2HScoreboard({
   members,
   scores,
+  teamStatuses,
   ownerColors,
   upcomingMatches,
   currentUserId,
@@ -19,12 +24,26 @@ export function H2HScoreboard({
 }: {
   members: MemberWithProfile[];
   scores: H2HScore[];
+  teamStatuses: H2HTeamStatus[];
   ownerColors: Map<string, string>;
   upcomingMatches: MatchWithTeams[];
   currentUserId: string;
   ownerOfTeam: Map<number, string>;
 }) {
   const scoreByUser = new Map(scores.map((s) => [s.user_id, s]));
+
+  // Derive alive/eliminated from the same per-team statuses the Rosters tab
+  // uses, so the two tabs always agree. The h2h_scores columns count teams with
+  // an unresolved (null) locked depth as neither alive nor eliminated, which
+  // reads as "0 / 0" all through the group stage.
+  const aliveByUser = new Map<string, AliveCount>();
+  for (const m of members) aliveByUser.set(m.user_id, { alive: 0, eliminated: 0 });
+  for (const s of teamStatuses) {
+    const c = aliveByUser.get(s.user_id);
+    if (!c) continue;
+    if (isTeamAlive(s)) c.alive += 1;
+    else c.eliminated += 1;
+  }
 
   const sortedMembers = [...members].sort((a, b) => {
     const sa = scoreByUser.get(a.user_id);
@@ -50,6 +69,7 @@ export function H2HScoreboard({
               key={m.id}
               member={m}
               score={scoreByUser.get(m.user_id)}
+              aliveCount={aliveByUser.get(m.user_id)}
               accentColor={ownerColors.get(m.user_id) ?? "border-border"}
               isCurrent={m.user_id === currentUserId}
             />
@@ -103,11 +123,13 @@ export function H2HScoreboard({
 function PlayerScoreCard({
   member,
   score,
+  aliveCount,
   accentColor,
   isCurrent,
 }: {
   member: MemberWithProfile;
   score: H2HScore | undefined;
+  aliveCount: AliveCount | undefined;
   accentColor: string;
   isCurrent: boolean;
 }) {
@@ -146,8 +168,8 @@ function PlayerScoreCard({
         )}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-        <Stat label="Alive" value={score?.teams_alive ?? 0} />
-        <Stat label="Out" value={score?.teams_eliminated ?? 0} />
+        <Stat label="Alive" value={aliveCount?.alive ?? 0} />
+        <Stat label="Out" value={aliveCount?.eliminated ?? 0} />
         <Stat label="QF teams" value={score?.qf_teams_count ?? 0} />
         <Stat label="SF teams" value={score?.sf_teams_count ?? 0} />
         <Stat label="Goals" value={score?.total_goals ?? 0} />

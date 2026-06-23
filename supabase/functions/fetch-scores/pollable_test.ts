@@ -6,6 +6,7 @@ import { assertEquals } from "jsr:@std/assert";
 import {
   FINISHED_REPOLL_MS,
   isPollable,
+  LIVE_WINDOW_MS,
   POST_WINDOW_MS,
   POSTPONED_MAX_AGE_MS,
   PRE_WINDOW_MS,
@@ -49,10 +50,19 @@ Deno.test("undrawn knockout stops being pollable after the post window", () => {
   assertEquals(isPollable(m, KICKOFF_MS + POST_WINDOW_MS + 1), false);
 });
 
-Deno.test("LIVE match honours the post window", () => {
+Deno.test("LIVE match keeps polling past the SCHEDULED post window", () => {
+  // Once in-play, a game must keep being reconciled until it reaches a terminal
+  // status. A long-running match (delayed kickoff, extra time, penalties) that
+  // crosses POST_WINDOW_MS would otherwise freeze on "Live Now" forever because
+  // it never receives the FINISHED update.
   const m = match({ status: "LIVE" });
-  assertEquals(isPollable(m, KICKOFF_MS + POST_WINDOW_MS - 1), true);
-  assertEquals(isPollable(m, KICKOFF_MS + POST_WINDOW_MS + 1), false);
+  assertEquals(isPollable(m, KICKOFF_MS + POST_WINDOW_MS + 1), true);
+});
+
+Deno.test("LIVE match is pollable within the live window only", () => {
+  const m = match({ status: "LIVE" });
+  assertEquals(isPollable(m, KICKOFF_MS + LIVE_WINDOW_MS - 1), true);
+  assertEquals(isPollable(m, KICKOFF_MS + LIVE_WINDOW_MS + 1), false);
 });
 
 Deno.test("FINISHED match is re-pollable within the repoll window only", () => {

@@ -23,7 +23,12 @@ A single coordinated design:
 3. **Scheduling: `pg_cron` + `pg_net`, every 5 minutes.** In-database scheduling keeps everything in Supabase. The cron SQL gates the call so the edge function fires only when a match is in its polling window — zero external requests on off-days.
 
 4. **Polling window (Strategy A — tight, per-match, unioned).**
-   - `SCHEDULED` or `LIVE`: `kickoff_at − 5min ≤ now ≤ kickoff_at + 165min`
+   - `SCHEDULED`: `kickoff_at − 5min ≤ now ≤ kickoff_at + 165min`
+   - `LIVE`: pollable until `kickoff_at + 6h`. Once the provider confirms a match
+     in-play it must keep being reconciled until it reaches a terminal status;
+     sharing the 165-min SCHEDULED post-window froze long-running games (delayed
+     kickoff, extra time, penalties) on "Live Now" forever because they never
+     received the FINISHED update.
    - `FINISHED`: pollable for 24h after `kickoff_at` (catches late corrections)
    - `POSTPONED`: pollable indefinitely, with a 7-day staleness warning (catches reschedules)
    - `CANCELLED`: never polled

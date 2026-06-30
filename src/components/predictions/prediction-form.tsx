@@ -113,12 +113,21 @@ export function PredictionForm({
   // 3 saved — which then surfaces as a confusing "max reached" error on save.
   // Keyed on a content signature so it only fires when the data actually changes,
   // never mid-typing on unchanged props.
-  const existingSignature = Array.from(existingPredictions.values())
-    .map(
-      (p) =>
-        `${p.match_id}:${p.predicted_home}-${p.predicted_away}:${p.predicted_winner_id ?? ""}:${p.is_confident ? 1 : 0}`
-    )
-    .sort()
+  //
+  // The signature is built from the CURRENT round's matches, not from every
+  // prediction the user has. The page fetches all of a user's predictions
+  // (unfiltered by round), so a signature over existingPredictions alone is
+  // identical for every round — switching rounds via client navigation (which
+  // keeps this component mounted) wouldn't change it, the effect wouldn't fire,
+  // and the cards would keep showing the previous round's picks until a full
+  // refresh. Folding in each match id makes the signature change per round.
+  const existingSignature = matches
+    .map((m) => {
+      const p = existingPredictions.get(m.id);
+      return p
+        ? `${m.id}:${p.predicted_home}-${p.predicted_away}:${p.predicted_winner_id ?? ""}:${p.is_confident ? 1 : 0}`
+        : `${m.id}:none`;
+    })
     .join("|");
 
   useEffect(() => {

@@ -29,7 +29,16 @@ A single coordinated design:
      sharing the 165-min SCHEDULED post-window froze long-running games (delayed
      kickoff, extra time, penalties) on "Live Now" forever because they never
      received the FINISHED update.
-   - `FINISHED`: pollable for 24h after `kickoff_at` (catches late corrections)
+   - `FINISHED`: pollable for 24h after `kickoff_at` (catches late corrections).
+     **Terminal under normal polling:** the 24h re-poll fixes *scores*, it does
+     not *un-finish* a match. The provider intermittently re-reports a
+     just-finished fixture as TIMED/IN_PLAY for a poll or two (knockout
+     re-seeding, transient glitches); honouring that reverted the match to
+     SCHEDULED, wiped its scoreline, stranded `winner_team_id` (only written on a
+     FINISHED poll), and — once past the SCHEDULED post-window — dropped it out
+     of the poll window so it froze as an "upcoming" game on the schedule (e.g.
+     CIV–NOR, R32). The sync skips any provider update that downgrades FINISHED
+     to a non-terminal status; deliberate corrections go through `?repair=true`.
    - `POSTPONED`: pollable indefinitely, with a 7-day staleness warning (catches reschedules)
    - `CANCELLED`: never polled
 

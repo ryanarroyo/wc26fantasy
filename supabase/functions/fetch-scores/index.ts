@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { alignFixture } from "./align.ts";
-import { isPollable } from "./pollable.ts";
+import { isFinishedDowngrade, isPollable } from "./pollable.ts";
 
 const FD_BASE = "https://api.football-data.org/v4";
 const SOURCE = "fetch-scores";
@@ -231,6 +231,14 @@ Deno.serve(async (req) => {
     if (!repair && !isPollable(ours, now)) continue;
 
     const newStatus = mapStatus(fx.status);
+
+    // FINISHED is terminal under normal polling. The provider occasionally
+    // re-reports a just-finished fixture as TIMED/IN_PLAY for a poll or two;
+    // applying that would wipe the scoreline, strand winner_team_id, and freeze
+    // the match as "upcoming" on the schedule once it leaves its poll window
+    // (see isFinishedDowngrade). Skip the regression entirely — leaving our
+    // FINISHED row intact. Deliberate corrections still flow via ?repair=true.
+    if (!repair && isFinishedDowngrade(ours.status, newStatus)) continue;
 
     // Map the provider's home/away teams onto our team ids. external_id was
     // backfilled by an *unordered* team pair (see 20260528000002), so the

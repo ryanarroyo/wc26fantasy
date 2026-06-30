@@ -65,3 +65,26 @@ export function isPollable(m: PollableMatch, now: number): boolean {
   }
   return false;
 }
+
+/**
+ * Whether applying the provider's status to an already-FINISHED match would
+ * regress it out of that terminal state.
+ *
+ * FINISHED is re-pollable for 24h so genuine score *corrections* are caught,
+ * but football-data.org intermittently re-reports a just-finished fixture as
+ * TIMED/IN_PLAY for a poll or two (knockout re-seeding, transient glitches).
+ * Honouring that downgrade wipes the stored scoreline, strands `winner_team_id`
+ * (only ever written on a FINISHED poll, so it survives a status revert), and —
+ * once the match is past its SCHEDULED post-window — drops it out of isPollable
+ * so it can never recover, freezing it as an "upcoming" game on the schedule.
+ *
+ * So FINISHED is terminal under normal polling: the 24h re-poll exists to fix
+ * scores, not to un-finish a match. Deliberate corrections go through repair
+ * mode, which bypasses this guard.
+ */
+export function isFinishedDowngrade(
+  current: PollableStatus,
+  next: PollableStatus,
+): boolean {
+  return current === "FINISHED" && next !== "FINISHED";
+}

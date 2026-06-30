@@ -5,6 +5,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
   FINISHED_REPOLL_MS,
+  isFinishedDowngrade,
   isPollable,
   LIVE_WINDOW_MS,
   POST_WINDOW_MS,
@@ -79,4 +80,26 @@ Deno.test("POSTPONED match is pollable within the max-age window only", () => {
 
 Deno.test("CANCELLED match is never pollable", () => {
   assertEquals(isPollable(match({ status: "CANCELLED" }), KICKOFF_MS), false);
+});
+
+Deno.test("provider re-reporting a FINISHED match as not-finished is a downgrade", () => {
+  // The bug that froze CIV–NOR (R32) on the schedule: a finished match the
+  // provider briefly re-reported as TIMED/IN_PLAY got reverted to SCHEDULED,
+  // losing its scoreline and stranding winner_team_id, then fell out of its
+  // poll window and could never recover.
+  assertEquals(isFinishedDowngrade("FINISHED", "SCHEDULED"), true);
+  assertEquals(isFinishedDowngrade("FINISHED", "LIVE"), true);
+  assertEquals(isFinishedDowngrade("FINISHED", "POSTPONED"), true);
+  assertEquals(isFinishedDowngrade("FINISHED", "CANCELLED"), true);
+});
+
+Deno.test("a FINISHED match staying FINISHED is not a downgrade", () => {
+  // Same-status repolls must still apply score/winner corrections.
+  assertEquals(isFinishedDowngrade("FINISHED", "FINISHED"), false);
+});
+
+Deno.test("normal forward transitions are not downgrades", () => {
+  assertEquals(isFinishedDowngrade("SCHEDULED", "LIVE"), false);
+  assertEquals(isFinishedDowngrade("LIVE", "FINISHED"), false);
+  assertEquals(isFinishedDowngrade("SCHEDULED", "FINISHED"), false);
 });

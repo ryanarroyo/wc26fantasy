@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { alignFixture } from "./align.ts";
-import { isFinishedDowngrade, isPollable } from "./pollable.ts";
+import { isFinishedDowngrade, isPollable, isUndecidedKnockoutFinish } from "./pollable.ts";
 
 const FD_BASE = "https://api.football-data.org/v4";
 const SOURCE = "fetch-scores";
@@ -230,7 +230,25 @@ Deno.serve(async (req) => {
     if (!ours) continue;
     if (!repair && !isPollable(ours, now)) continue;
 
-    const newStatus = mapStatus(fx.status);
+    const providerStatus = mapStatus(fx.status);
+    // Group games may end level; knockouts can't. Used below to spot a knockout
+    // the provider calls FINISHED before it's actually decided (see
+    // isUndecidedKnockoutFinish).
+    const isKnockout = fx.stage != null && fx.stage !== "GROUP_STAGE";
+
+    // Our own FINISHED row is illegitimate — and must be allowed to un-finish —
+    // if it's a still-undecided knockout tie, e.g. the 0-0 the provider reported
+    // at the end of regulation before extra time. Without this the resume-to-LIVE
+    // below is dropped as a downgrade and the match stays frozen at "FT".
+    const ourFinishUndecided = ours.status === "FINISHED" &&
+      isUndecidedKnockoutFinish({
+        isKnockout,
+        homeScore: ours.home_score,
+        awayScore: ours.away_score,
+        homePenalties: ours.home_penalties,
+        awayPenalties: ours.away_penalties,
+        winnerTeamId: ours.winner_team_id,
+      });
 
     // FINISHED is terminal under normal polling. The provider occasionally
     // re-reports a just-finished fixture as TIMED/IN_PLAY for a poll or two;
@@ -238,7 +256,12 @@ Deno.serve(async (req) => {
     // the match as "upcoming" on the schedule once it leaves its poll window
     // (see isFinishedDowngrade). Skip the regression entirely — leaving our
     // FINISHED row intact. Deliberate corrections still flow via ?repair=true.
-    if (!repair && isFinishedDowngrade(ours.status, newStatus)) continue;
+    // Exception: a not-yet-decided knockout "finish" (ourFinishUndecided) must be
+    // allowed to un-finish so it can play out extra time / penalties.
+    if (
+      !repair && isFinishedDowngrade(ours.status, providerStatus) &&
+      !ourFinishUndecided
+    ) continue;
 
     // Map the provider's home/away teams onto our team ids. external_id was
     // backfilled by an *unordered* team pair (see 20260528000002), so the
@@ -261,7 +284,7 @@ Deno.serve(async (req) => {
       fdHomePen: fx.score?.penalties?.home ?? null,
       fdAwayPen: fx.score?.penalties?.away ?? null,
       fdWinner: fx.score?.winner ?? null,
-      finished: newStatus === "FINISHED",
+      finished: providerStatus === "FINISHED",
     });
 
     if (!aligned.ok) {
@@ -280,6 +303,23 @@ Deno.serve(async (req) => {
     const newHome = aligned.homeTeamId;
     const newAway = aligned.awayTeamId;
     const winnerId = aligned.winnerTeamId;
+
+    // A knockout the provider reports FINISHED but hasn't decided (level, no
+    // winner, no penalties) is still in play — football-data reports this at the
+    // end of regular time before extra time. Keep it LIVE so we don't finalize a
+    // false result and freeze it at "FT"; the real FINISHED (with a winner)
+    // lands after extra time / penalties.
+    const newStatus: OurStatus =
+      providerStatus === "FINISHED" && isUndecidedKnockoutFinish({
+          isKnockout,
+          homeScore: aligned.homeScore,
+          awayScore: aligned.awayScore,
+          homePenalties: aligned.homePen,
+          awayPenalties: aligned.awayPen,
+          winnerTeamId: aligned.winnerTeamId,
+        })
+        ? "LIVE"
+        : providerStatus;
 
     // Live clock (v4.1). Only meaningful while in play; cleared to NULL once the
     // match leaves LIVE so finished/scheduled rows never show a stale minute.

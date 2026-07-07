@@ -88,3 +88,33 @@ export function isFinishedDowngrade(
 ): boolean {
   return current === "FINISHED" && next !== "FINISHED";
 }
+
+/**
+ * Whether a fixture the provider reports (or we've stored) as FINISHED is a
+ * knockout tie that isn't actually decided yet — level score, no penalty
+ * shootout, no winner.
+ *
+ * A knockout can only truly end with a decided winner (extra time or penalties).
+ * football-data.org, however, momentarily flips a level knockout to FINISHED at
+ * the final whistle of *regular* time — winner "DRAW", no penalties — before it
+ * resumes for extra time. Finalizing that snapshot writes e.g. 0-0 and, because
+ * isFinishedDowngrade then treats the resume-to-LIVE as a protected downgrade,
+ * freezes the match on the schedule as a 0-0 "FT" forever (Switzerland–Colombia,
+ * R16). So this "finish" must be treated as still in-play, both when it arrives
+ * (don't finalize) and when it's already stored (allow it to un-finish).
+ *
+ * Group-stage games may legitimately end level, so this is knockout-only.
+ */
+export function isUndecidedKnockoutFinish(f: {
+  isKnockout: boolean;
+  homeScore: number | null;
+  awayScore: number | null;
+  homePenalties: number | null;
+  awayPenalties: number | null;
+  winnerTeamId: number | null;
+}): boolean {
+  if (!f.isKnockout) return false;
+  if (f.winnerTeamId != null) return false;
+  if (f.homePenalties != null || f.awayPenalties != null) return false;
+  return f.homeScore != null && f.homeScore === f.awayScore;
+}

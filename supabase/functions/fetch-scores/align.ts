@@ -56,6 +56,40 @@ export interface AlignMismatch {
 export type AlignResult = AlignedFixture | AlignMismatch;
 
 /**
+ * The real match score (after extra time), with any penalty shootout removed.
+ *
+ * football-data.org folds the shootout tally into `score.fullTime` for
+ * penalty-decided knockouts — e.g. a 0-0 tie won 4-3 on penalties is reported as
+ * fullTime 4-3. Stored raw, that both misreports the scoreline (the UI shows
+ * penalties separately) and corrupts scoring (exact/result/upset all compare
+ * against home_score/away_score), and it's internally impossible: a shootout
+ * only happens when the score is level after extra time.
+ *
+ * A shootout only occurs from a level score, so the true score is whichever of
+ * `fullTime` or `fullTime - penalties` is level and non-negative. Guarding on
+ * that makes this safe whether or not the provider folds penalties in, and never
+ * produces a negative score by double-subtracting.
+ */
+export function scoreExcludingShootout(
+  fullHome: number | null,
+  fullAway: number | null,
+  penHome: number | null,
+  penAway: number | null,
+): { home: number | null; away: number | null } {
+  const hasPens = penHome != null || penAway != null;
+  if (!hasPens || fullHome == null || fullAway == null) {
+    return { home: fullHome, away: fullAway };
+  }
+  // Already level → provider gave the extra-time score; don't subtract.
+  if (fullHome === fullAway) return { home: fullHome, away: fullAway };
+  const home = fullHome - (penHome ?? 0);
+  const away = fullAway - (penAway ?? 0);
+  if (home >= 0 && away >= 0 && home === away) return { home, away };
+  // Neither reading is a level score → unexpected shape; keep raw fullTime.
+  return { home: fullHome, away: fullAway };
+}
+
+/**
  * Align a provider fixture onto our home/away orientation by team identity.
  * Returns `{ ok: false, reason: "team_mismatch" }` when the provider's teams
  * line up with neither orientation (external_id points at the wrong fixture) —

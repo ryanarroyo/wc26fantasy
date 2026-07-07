@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { alignFixture } from "./align.ts";
+import { alignFixture, scoreExcludingShootout } from "./align.ts";
 import { isFinishedDowngrade, isPollable, isUndecidedKnockoutFinish } from "./pollable.ts";
 
 const FD_BASE = "https://api.football-data.org/v4";
@@ -271,6 +271,17 @@ Deno.serve(async (req) => {
     const fdAwayTeamId =
       fx.awayTeam.id != null ? teamByExt.get(fx.awayTeam.id) ?? null : null;
 
+    // football-data folds a penalty shootout into fullTime; strip it back to the
+    // real (level) extra-time score before storing, so the scoreline and scoring
+    // don't treat a 0-0-won-on-pens as e.g. a 4-3 home win. Pens are kept in
+    // home_penalties/away_penalties. Pure + unit-tested in align.ts.
+    const trueScore = scoreExcludingShootout(
+      fx.score?.fullTime?.home ?? null,
+      fx.score?.fullTime?.away ?? null,
+      fx.score?.penalties?.home ?? null,
+      fx.score?.penalties?.away ?? null,
+    );
+
     // Align the provider's scoreline onto OUR orientation by team identity, so
     // decisive results can't be stored reversed and winner_team_id can't point
     // at the loser. Pure + unit-tested in align.ts.
@@ -279,8 +290,8 @@ Deno.serve(async (req) => {
       ourAwayTeamId: ours.away_team_id,
       fdHomeTeamId,
       fdAwayTeamId,
-      fdHomeScore: fx.score?.fullTime?.home ?? null,
-      fdAwayScore: fx.score?.fullTime?.away ?? null,
+      fdHomeScore: trueScore.home,
+      fdAwayScore: trueScore.away,
       fdHomePen: fx.score?.penalties?.home ?? null,
       fdAwayPen: fx.score?.penalties?.away ?? null,
       fdWinner: fx.score?.winner ?? null,

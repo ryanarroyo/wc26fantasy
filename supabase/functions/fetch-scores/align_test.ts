@@ -2,7 +2,7 @@
 // reversed-score bug (a decisive result stored backwards because external_id
 // was backfilled from an unordered team pair). Run with: `deno test`.
 import { assertEquals } from "jsr:@std/assert";
-import { alignFixture, type AlignInput } from "./align.ts";
+import { alignFixture, scoreExcludingShootout, type AlignInput } from "./align.ts";
 
 // Base: a finished, decisive match in matching orientation (no penalties).
 function base(overrides: Partial<AlignInput> = {}): AlignInput {
@@ -163,4 +163,27 @@ Deno.test("penalties realign with the flip", () => {
 Deno.test("not finished: no winner even if provider reports one", () => {
   const r = alignFixture(base({ finished: false, fdWinner: "AWAY_TEAM" }));
   assertEquals(r.ok && r.winnerTeamId, null);
+});
+
+Deno.test("scoreExcludingShootout: fullTime with folded penalties → level score", () => {
+  // The Switzerland–Colombia case: provider reports fullTime 4-3, pens 4-3;
+  // the real extra-time score was 0-0.
+  assertEquals(scoreExcludingShootout(4, 3, 4, 3), { home: 0, away: 0 });
+  // 1-1 ties won on penalties (the R32 games): fullTime 4-5 pens 3-4 → 1-1.
+  assertEquals(scoreExcludingShootout(4, 5, 3, 4), { home: 1, away: 1 });
+});
+
+Deno.test("scoreExcludingShootout: no penalties → fullTime untouched", () => {
+  assertEquals(scoreExcludingShootout(2, 1, null, null), { home: 2, away: 1 });
+});
+
+Deno.test("scoreExcludingShootout: provider already gives level ET score → not double-subtracted", () => {
+  // Defensive: if fullTime is the level ET score (0-0) with pens separate,
+  // keep 0-0 rather than going negative.
+  assertEquals(scoreExcludingShootout(0, 0, 4, 3), { home: 0, away: 0 });
+  assertEquals(scoreExcludingShootout(1, 1, 5, 4), { home: 1, away: 1 });
+});
+
+Deno.test("scoreExcludingShootout: unexpected shape (subtraction not level) → keep raw fullTime", () => {
+  assertEquals(scoreExcludingShootout(3, 1, 1, 0), { home: 3, away: 1 });
 });

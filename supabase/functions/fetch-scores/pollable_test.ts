@@ -7,6 +7,7 @@ import {
   FINISHED_REPOLL_MS,
   isFinishedDowngrade,
   isPollable,
+  isUndecidedKnockoutFinish,
   LIVE_WINDOW_MS,
   POST_WINDOW_MS,
   POSTPONED_MAX_AGE_MS,
@@ -102,4 +103,61 @@ Deno.test("normal forward transitions are not downgrades", () => {
   assertEquals(isFinishedDowngrade("SCHEDULED", "LIVE"), false);
   assertEquals(isFinishedDowngrade("LIVE", "FINISHED"), false);
   assertEquals(isFinishedDowngrade("SCHEDULED", "FINISHED"), false);
+});
+
+function knockoutFinish(
+  overrides: Partial<Parameters<typeof isUndecidedKnockoutFinish>[0]> = {},
+) {
+  return {
+    isKnockout: true,
+    homeScore: 0,
+    awayScore: 0,
+    homePenalties: null,
+    awayPenalties: null,
+    winnerTeamId: null,
+    ...overrides,
+  };
+}
+
+Deno.test("level knockout with no winner or penalties is undecided", () => {
+  // The Switzerland–Colombia (R16) freeze: provider flips a 0-0 knockout to
+  // FINISHED at the end of regular time, before extra time.
+  assertEquals(isUndecidedKnockoutFinish(knockoutFinish()), true);
+  assertEquals(
+    isUndecidedKnockoutFinish(knockoutFinish({ homeScore: 1, awayScore: 1 })),
+    true,
+  );
+});
+
+Deno.test("a decided knockout is not undecided", () => {
+  // Winner in extra time.
+  assertEquals(
+    isUndecidedKnockoutFinish(
+      knockoutFinish({ homeScore: 1, awayScore: 0, winnerTeamId: 10 }),
+    ),
+    false,
+  );
+  // Level after 120' but decided on penalties.
+  assertEquals(
+    isUndecidedKnockoutFinish(
+      knockoutFinish({ homePenalties: 4, awayPenalties: 3, winnerTeamId: 10 }),
+    ),
+    false,
+  );
+});
+
+Deno.test("a level group-stage draw is a legitimate finish, not undecided", () => {
+  assertEquals(
+    isUndecidedKnockoutFinish(knockoutFinish({ isKnockout: false })),
+    false,
+  );
+});
+
+Deno.test("an unplayed knockout (null scores) is not treated as an undecided finish", () => {
+  assertEquals(
+    isUndecidedKnockoutFinish(
+      knockoutFinish({ homeScore: null, awayScore: null }),
+    ),
+    false,
+  );
 });

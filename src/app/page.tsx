@@ -15,20 +15,21 @@ export default function HomePage() {
           World Cup Fantasy
         </h1>
         <p className="mt-2 text-lg font-light tracking-widest uppercase text-white/40">
-          2026 Bracket Predictor
+          2026 Tournament Archive
         </p>
 
         <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-white/60">
-          Predict exact scores for every match. Create private leagues, compete
-          with friends, and follow the tournament with live score updates.
+          The tournament is over — Spain beat Argentina 1&ndash;0 in the final
+          at MetLife Stadium on July 19, 2026. Every result, bracket, and
+          league leaderboard is preserved here.
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
           <Link
-            href="/login"
+            href="/leagues"
             className="rounded-full bg-white px-8 py-3 text-sm font-semibold text-black transition-colors hover:bg-white/90"
           >
-            Get Started
+            Final Standings
           </Link>
           <Link
             href="/bracket"
@@ -41,75 +42,75 @@ export default function HomePage() {
           href="/how-to-play"
           className="mt-6 text-xs font-medium uppercase tracking-widest text-white/40 transition-colors hover:text-white/70"
         >
-          How scoring works →
+          How scoring worked →
         </Link>
       </section>
 
-      {/* Stats */}
+      {/* Final result */}
       <section className="border-y border-white/10 py-12">
         <div className="mx-auto flex max-w-2xl flex-col items-center justify-center gap-8 sm:flex-row sm:gap-16">
           <div className="text-center">
-            <div className="text-4xl font-bold text-white">48</div>
+            <div className="text-4xl font-bold text-white">🇪🇸</div>
             <div className="mt-1 text-xs font-medium uppercase tracking-widest text-white/40">
-              Teams
+              Champions: Spain
+            </div>
+          </div>
+          <div className="hidden h-8 w-px bg-white/10 sm:block" />
+          <div className="text-center">
+            <div className="text-4xl font-bold text-white">1–0</div>
+            <div className="mt-1 text-xs font-medium uppercase tracking-widest text-white/40">
+              Final vs Argentina
             </div>
           </div>
           <div className="hidden h-8 w-px bg-white/10 sm:block" />
           <div className="text-center">
             <div className="text-4xl font-bold text-white">104</div>
             <div className="mt-1 text-xs font-medium uppercase tracking-widest text-white/40">
-              Matches
-            </div>
-          </div>
-          <div className="hidden h-8 w-px bg-white/10 sm:block" />
-          <div className="text-center">
-            <div className="text-4xl font-bold text-white">12</div>
-            <div className="mt-1 text-xs font-medium uppercase tracking-widest text-white/40">
-              Groups
+              Matches Played
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* What's preserved */}
       <section className="px-4 py-20">
         <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10">
               <svg className="h-6 w-6 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-white">Predict</h3>
+            <h3 className="text-sm font-semibold text-white">Leaderboards</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/40">
-              Pick exact scores for all 104 matches. Earn bonus points for
-              perfect predictions.
+              Every league&apos;s final standings, with points by round and
+              upset bonuses, frozen as of the final whistle.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10">
               <svg className="h-6 w-6 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-white">Compete</h3>
+            <h3 className="text-sm font-semibold text-white">Full Results</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/40">
-              Create private leagues with friends. Share an invite code and climb
-              the leaderboard.
+              All 104 matches from the group stage to the final, including
+              every knockout bracket and penalty shootout.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/10">
               <svg className="h-6 w-6 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-white">Live Scores</h3>
+            <h3 className="text-sm font-semibold text-white">Read-Only</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/40">
-              Real-time match updates. Scores and standings refresh
-              automatically as games unfold.
+              The site is a static archive — no sign-in, no edits. Everything
+              you see is the final record.
             </p>
           </div>
         </div>
@@ -124,7 +125,8 @@ export default function HomePage() {
           How to Play
         </Link>
         <span className="mx-3 text-white/10">·</span>
-        FIFA World Cup 2026 &middot; USA &middot; Mexico &middot; Canada
+        FIFA World Cup 2026 &middot; USA &middot; Mexico &middot; Canada &middot;
+        Archived July 2026
       </footer>
     </div>
   );

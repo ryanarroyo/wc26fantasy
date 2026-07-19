@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The tournament is over; the site ships as a fully static archive.
+  output: "export",
 };
 
 export default nextConfig;

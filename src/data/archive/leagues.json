@@ -1,0 +1,177 @@
+[
+  {
+    "id": "5520ebbe-ec57-4d99-81ae-2347426d65de",
+    "name": "Terminal",
+    "mode": "PREDICTIONS",
+    "owner_id": "2259de8a-e296-4048-8b87-b79b82235e66",
+    "created_at": "2026-04-11T23:48:25.240506+00:00",
+    "members": [
+      { "user_id": "2259de8a-e296-4048-8b87-b79b82235e66", "display_name": "Ryan Arroyo", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKIz0qzbMRDJ4FA_2bimXEf_0av9F_qHSwXkRCCCYJTWhItSlMf=s96-c" },
+      { "user_id": "a0dc9f1f-793a-467c-91f2-a58c49b58bac", "display_name": "Misha Kl", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJ5BiHN-70W-boHkbyLqeUfojFZJVfF3ncdzVbmYTOnpueiDmg=s96-c" },
+      { "user_id": "a2b3ce05-1227-4b3d-8c95-ee65bc3fff81", "display_name": "Ryan McDonald", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKPAaxxPJLONDihBJXqYGLX162KPw2-1oOW-LX3RBhcU1_4og=s96-c" },
+      { "user_id": "96d9062e-22a1-4479-9ae5-3dae5a281795", "display_name": "Ryan Clifford", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocLyQd8XITzsxtblg0_vpW7n8OX-vCGx4CjBO5Kr_WZ1dRWjmoPR=s96-c" },
+      { "user_id": "cfbb5540-c4b1-4605-9343-ea7439188b47", "display_name": "Rob Comfort", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKfSZwbCOTg0npT7tfAzYTh13L9PrjdnS8UcE5RNUv2V1GIrA=s96-c" },
+      { "user_id": "3969665b-ebd7-4cac-98a6-da07384383c1", "display_name": "Jason Hammock", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocLR6JGEUCYONEhWAjQKQoK80WR3u4ty1PY4NNj7w6m5W-ht9g=s96-c" },
+      { "user_id": "bfe773f7-aaba-460e-ab46-f546573a48f5", "display_name": "Thomas Lombardi", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKVCmFuVi9vTqBZXCoMEo2iXGZJQbC8QQgJF7Cfnq_IAwdIayo=s96-c" },
+      { "user_id": "49b9ed3c-56b2-48a0-9470-5e65e741c502", "display_name": "Mark Matei", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKsoXOkUs6tpjrityh6nxQZGfdroehS-RI5L3OcbXFsOg3WDg=s96-c" },
+      { "user_id": "46c9e594-f56a-4290-9861-a904d7e4e606", "display_name": "Steven L", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKlbAtD9kAmoXRvL4gcNfwTp8M9lQ-JJNyxgXhoRwnWx1QaBGt7=s96-c" },
+      { "user_id": "4ed283a9-b390-453b-8e44-d815fb97a405", "display_name": "Paul Dombkowski", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKfOPqxMrXaveTA2jok-D0VndPk7qhe4Wrhl0k7cJF5tbxMDV9F=s96-c" },
+      { "user_id": "ba95cf11-ec83-4494-92d0-f6787bac1403", "display_name": "Chris Duncan", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocLgX4aqKd-2N3wB70nA40f2sh56NpvkskbuMjG36OnbnsleGA=s96-c" },
+      { "user_id": "13c74fce-cdee-4066-88d5-a6a87c9fcc3e", "display_name": "Mykhailo Kliuvak", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIZJL_tNhybGjjjb6eFJ_ZajiRpEj5oqp5VwUni4e5Lu8PevA=s96-c" },
+      { "user_id": "6e11e3ac-c76d-496d-a040-1cae1f195042", "display_name": "Kreg Boyd", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJ1FO9qroF0bRhPw-ZMRZlvp0yltaTZ_RM506ayvYJ4HysLKug=s96-c" },
+      { "user_id": "5c593d40-db22-4c41-954f-059fdf08619b", "display_name": "Veronica Gluza", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJV_n7P50GpJKyJ-geQyzF4HsvyaXkWuE9KC0CvbNvpITvqtA=s96-c" },
+      { "user_id": "bb3d666b-315a-4184-b1e6-97a8c469a8fe", "display_name": "Ronan Killough", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKCGZWDISCST2lCMd3vFNpCiqQnacq_uMyIhq4IWaDFXz8IHQ=s96-c" },
+      { "user_id": "3828ba74-b693-42a1-8ed9-4aafa99b36c4", "display_name": "Omar Ben Tanfous", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJob6NTg4Fzj8xq23aIz-4VY13XnLMRaaISRBzg6RxKuvqvHOEf=s96-c" },
+      { "user_id": "d336918d-a963-44b4-8485-e015b2a3923c", "display_name": "Matt Kozar", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIjA7uLXyk2-COvssB17_nSdqM9_AC2-709HQJGH-AedkylXg=s96-c" },
+      { "user_id": "1996a7de-b151-4b07-9c23-f5f76d6c0556", "display_name": "Laszlo Szilagyi", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIqGAnjgoTOSn1nR800G7PuXwk6v0_QdU3bS_UMVlw0dmgSc2c=s96-c" }
+    ]
+  },
+  {
+    "id": "1426bc06-a869-4934-bf25-e457efe716bb",
+    "name": "RyanvsNiek",
+    "mode": "PREDICTIONS",
+    "owner_id": "2259de8a-e296-4048-8b87-b79b82235e66",
+    "created_at": "2026-04-11T23:49:38.579421+00:00",
+    "members": [
+      { "user_id": "2259de8a-e296-4048-8b87-b79b82235e66", "display_name": "Ryan Arroyo", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKIz0qzbMRDJ4FA_2bimXEf_0av9F_qHSwXkRCCCYJTWhItSlMf=s96-c" },
+      { "user_id": "bf819bbd-100e-47b7-90fb-d60f06542dab", "display_name": "Boondock Trader", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKf65ZD3QkoQ--C25DJZDUfkqO69xbMYfUePi1PubHy7c-VUw=s96-c" }
+    ]
+  },
+  {
+    "id": "7ae28d63-94f1-4f9b-864f-e053ec51e1f7",
+    "name": "Inacorpsa League",
+    "mode": "PREDICTIONS",
+    "owner_id": "3bf5787d-05d5-4956-8da1-6a70c4de909a",
+    "created_at": "2026-04-21T19:29:03.573919+00:00",
+    "members": [
+      { "user_id": "3bf5787d-05d5-4956-8da1-6a70c4de909a", "display_name": "Cristina Rodriguez Tapia", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocI5XSh_TiS3X_jdq_JuiETd5UlQ7UiFv4tt788Tzl_rJHK2wQ=s96-c" }
+    ]
+  },
+  {
+    "id": "7ffa874f-c574-4622-8e21-b15578586f01",
+    "name": "test",
+    "mode": "PREDICTIONS",
+    "owner_id": "298275ec-48fb-4f7e-8e70-e353326b6dfb",
+    "created_at": "2026-04-21T22:54:43.067648+00:00",
+    "members": [
+      { "user_id": "298275ec-48fb-4f7e-8e70-e353326b6dfb", "display_name": "Anup Bharade", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKhGOpBkuouWpON6021kaNViKPGzVJWkqXkd3M-UuZ1cKAVWg=s96-c" }
+    ]
+  },
+  {
+    "id": "1824cd32-27be-4195-bedd-9452e1dc5c71",
+    "name": "CO WC2026",
+    "mode": "PREDICTIONS",
+    "owner_id": "4342616e-51f5-4c4f-bc82-a8efe3568d93",
+    "created_at": "2026-04-24T17:09:39.018928+00:00",
+    "members": [
+      { "user_id": "4342616e-51f5-4c4f-bc82-a8efe3568d93", "display_name": "Jonathan Diazbarriga", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocICTYP3bO4TR68YzusL8Oy-gGunAFnFizKYCLn5NanK78TypT8=s96-c" }
+    ]
+  },
+  {
+    "id": "dd47fe42-02d8-406c-b727-55add8f3da3c",
+    "name": "Everest Base Camp 26 SNC & Jamie's Farm.",
+    "mode": "PREDICTIONS",
+    "owner_id": "2d3ce94f-ddd2-4767-a73b-88569075bae0",
+    "created_at": "2026-05-10T20:39:20.319325+00:00",
+    "members": [
+      { "user_id": "2d3ce94f-ddd2-4767-a73b-88569075bae0", "display_name": "John Greening", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocK33e9jUbkuVoGohMEtwuuBajHxOnWyfzvXBreNmIu2MVhC3w=s96-c" }
+    ]
+  },
+  {
+    "id": "1e3cc654-5986-406a-aaca-ad6774320e4d",
+    "name": "FloridiavsTexas",
+    "mode": "PREDICTIONS",
+    "owner_id": "2259de8a-e296-4048-8b87-b79b82235e66",
+    "created_at": "2026-05-17T12:27:56.863365+00:00",
+    "members": [
+      { "user_id": "2259de8a-e296-4048-8b87-b79b82235e66", "display_name": "Ryan Arroyo", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKIz0qzbMRDJ4FA_2bimXEf_0av9F_qHSwXkRCCCYJTWhItSlMf=s96-c" },
+      { "user_id": "7ca52545-0588-4c35-ab88-7b9bfbd16725", "display_name": "Matt Adolph", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIKOxjwH0yh5krJlta28jTv2lSp_c2SONxUEt8_RX5eK_2_C7M=s96-c" }
+    ]
+  },
+  {
+    "id": "59907f57-5297-41ce-be3d-4f59f82a480e",
+    "name": "MattVSRyan",
+    "mode": "H2H_DRAFT",
+    "owner_id": "2259de8a-e296-4048-8b87-b79b82235e66",
+    "created_at": "2026-05-17T12:33:44.070161+00:00",
+    "members": [
+      { "user_id": "2259de8a-e296-4048-8b87-b79b82235e66", "display_name": "Ryan Arroyo", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKIz0qzbMRDJ4FA_2bimXEf_0av9F_qHSwXkRCCCYJTWhItSlMf=s96-c" },
+      { "user_id": "7ca52545-0588-4c35-ab88-7b9bfbd16725", "display_name": "Matt Adolph", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIKOxjwH0yh5krJlta28jTv2lSp_c2SONxUEt8_RX5eK_2_C7M=s96-c" }
+    ]
+  },
+  {
+    "id": "76b8064f-9b43-4288-84e0-c690bc5f839d",
+    "name": "The League Does Futbol",
+    "mode": "PREDICTIONS",
+    "owner_id": "da56fd1f-3346-4142-857c-62786f776ca0",
+    "created_at": "2026-06-03T11:18:15.518787+00:00",
+    "members": [
+      { "user_id": "da56fd1f-3346-4142-857c-62786f776ca0", "display_name": "Ian Kerr", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocLJ9XlKcmBjVXfZjPJOO0vT2XNi5aTuOL-hqDjzgJxOv4yORA=s96-c" }
+    ]
+  },
+  {
+    "id": "97ece67c-1cb6-4377-bfad-725fdddc124c",
+    "name": "PCL Cup",
+    "mode": "PREDICTIONS",
+    "owner_id": "646df844-489e-4ec5-b7eb-eb72d5b8a5a2",
+    "created_at": "2026-06-03T14:59:12.030412+00:00",
+    "members": [
+      { "user_id": "646df844-489e-4ec5-b7eb-eb72d5b8a5a2", "display_name": "Derek Banuelos", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJFr3kF_kxJGZ8iQJ4flLp0j5bhiWksjxcg5cXN-7uGMXX0QA=s96-c" }
+    ]
+  },
+  {
+    "id": "81da8e2a-e262-47df-a8a6-747bae947da3",
+    "name": "Scotia - test",
+    "mode": "PREDICTIONS",
+    "owner_id": "714109f2-d367-4749-b4d9-535a3374487b",
+    "created_at": "2026-06-08T19:42:18.641128+00:00",
+    "members": [
+      { "user_id": "714109f2-d367-4749-b4d9-535a3374487b", "display_name": "Aditya Mishra", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJtO99YveUqW8zpYGbrrgNJ9YnWY9OnO-8u6dzaSbIyFlu4JQ=s96-c" }
+    ]
+  },
+  {
+    "id": "93c790f8-31aa-4add-b934-00056524779e",
+    "name": "silverdale",
+    "mode": "PREDICTIONS",
+    "owner_id": "3736286e-4658-4ecd-9444-b5c2122fe5cb",
+    "created_at": "2026-06-11T08:42:38.995462+00:00",
+    "members": [
+      { "user_id": "3736286e-4658-4ecd-9444-b5c2122fe5cb", "display_name": "Ethan Tsoi", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJBenhlwXn0wb6buDvdOAnwSBcePfA7cnZQaY8XokowMzaZlg=s96-c" },
+      { "user_id": "5418233f-8d07-40b3-beef-7069d1a38cd6", "display_name": "Stan de Pledge", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJT5ezTqhHoUeN43xhjX4yeWqzuPfR921i9tPbzpJFzTVqcsQ=s96-c" }
+    ]
+  },
+  {
+    "id": "ac2893e2-d353-492c-be67-dc28f191a8bf",
+    "name": "FC Jam3iya",
+    "mode": "PREDICTIONS",
+    "owner_id": "3828ba74-b693-42a1-8ed9-4aafa99b36c4",
+    "created_at": "2026-06-11T15:47:15.027146+00:00",
+    "members": [
+      { "user_id": "3828ba74-b693-42a1-8ed9-4aafa99b36c4", "display_name": "Omar Ben Tanfous", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJob6NTg4Fzj8xq23aIz-4VY13XnLMRaaISRBzg6RxKuvqvHOEf=s96-c" },
+      { "user_id": "8d5de1a8-e754-489b-bc69-889b78bd3431", "display_name": "med mehdi sellami", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIrwaVJrYqg4Jit2O8AtQdIBUZXLZgeOLUxRCtFx3-H66Zisw=s96-c" },
+      { "user_id": "93a3b302-6f20-44de-9954-ef451c1b648b", "display_name": "Anis", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKQoKgFLiI4eTza6q7LqoiCbZ6-C9d3ILORDqV2JNvavmc9LQ=s96-c" },
+      { "user_id": "bb3a5a38-3e37-477a-94a2-484c6b0ad624", "display_name": "Rayan", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocI-PKUi7JtTvIXLJixkQSqwAaQp3NlH8ac8ALgWZ2AlLkZyiw=s96-c" },
+      { "user_id": "ad402155-d2b1-43f5-87f1-235a1614a5ab", "display_name": "beji skander", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIRo0PGjSIGNCBOiTmmt24Y5kOaGGqHXJt076EY9_nzFKp9bR2v=s96-c" }
+    ]
+  },
+  {
+    "id": "5d3ef324-dca5-412b-af14-7b8ecc3996e5",
+    "name": "2026 World Cup League",
+    "mode": "H2H_DRAFT",
+    "owner_id": "aca601a0-2511-4189-9398-0af9e8d4d29d",
+    "created_at": "2026-06-11T23:33:31.191882+00:00",
+    "members": [
+      { "user_id": "aca601a0-2511-4189-9398-0af9e8d4d29d", "display_name": "Dennis Taipina", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKDhu9jbANK2thjtMlBmKjIGUXqG_q8i66XN-lVygsYnMpkQw=s96-c" }
+    ]
+  },
+  {
+    "id": "ed53c45b-986d-47f3-84e3-71eb1d30340c",
+    "name": "2026 World Cup league",
+    "mode": "PREDICTIONS",
+    "owner_id": "aca601a0-2511-4189-9398-0af9e8d4d29d",
+    "created_at": "2026-06-11T23:35:36.175711+00:00",
+    "members": [
+      { "user_id": "aca601a0-2511-4189-9398-0af9e8d4d29d", "display_name": "Dennis Taipina", "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKDhu9jbANK2thjtMlBmKjIGUXqG_q8i66XN-lVygsYnMpkQw=s96-c" }
+    ]
+  }
+]

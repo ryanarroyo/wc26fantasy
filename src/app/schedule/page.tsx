@@ -1,19 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
-import type { MatchWithTeams } from "@/lib/types/database";
+import { getMatches } from "@/lib/archive/data";
 import { ScheduleView } from "@/components/schedule/schedule-view";
 
-export default async function SchedulePage() {
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from("matches")
-    .select(
-      "*, home_team:teams!matches_home_team_id_fkey(*), away_team:teams!matches_away_team_id_fkey(*), winner_team:teams!matches_winner_team_id_fkey(*)"
-    )
-    .order("kickoff_at")
-    .order("match_number");
-
-  const matches = (data ?? []) as MatchWithTeams[];
+export default function SchedulePage() {
+  const matches = [...getMatches()].sort(
+    (a, b) =>
+      new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime() ||
+      a.match_number - b.match_number
+  );
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
